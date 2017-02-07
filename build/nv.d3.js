@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2016-12-08 */
+/* nvd3 version 1.8.5-dev (https://github.com/novus/nvd3) 2017-02-07 */
 (function(){
 
 // set up main nv object
@@ -221,9 +221,9 @@ nv.interactiveGuideline = function() {
             }
 
             function mouseHandler() {
-                var d3mouse = d3.mouse(this);
-                var mouseX = d3mouse[0];
-                var mouseY = d3mouse[1];
+                var mouseX = d3.event.clientX - this.getBoundingClientRect().left;
+                var mouseY = d3.event.clientY - this.getBoundingClientRect().top;
+
                 var subtractMargin = true;
                 var mouseOutAnyReason = false;
                 if (isMSIE) {
@@ -6886,8 +6886,10 @@ nv.models.lineChart = function() {
                     .call(legend);
 
                 if (legendPosition === 'bottom') {
-                    wrap.select('.nv-legendWrap')
-                        .attr('transform', 'translate(0,' + availableHeight +')');
+                     margin.bottom = xAxis.height() + legend.height();
+                     availableHeight = nv.utils.availableHeight(height, container, margin);
+                     g.select('.nv-legendWrap')
+                         .attr('transform', 'translate(0,' + (availableHeight + xAxis.height())  +')');
                 } else if (legendPosition === 'top') {
                     if (!marginTop && legend.height() !== margin.top) {
                         margin.top = legend.height();
@@ -12743,6 +12745,10 @@ nv.models.scatter = function() {
 
                 // inject series and point index for reference into voronoi
                 if (useVoronoi === true) {
+                    
+                    // nuke all voronoi paths on reload and recreate them
+                    wrap.select('.nv-point-paths').selectAll('path').remove();
+                    
                     var vertices = d3.merge(data.map(function(group, groupIndex) {
                             return group.values
                                 .map(function(point, pointIndex) {
@@ -12790,8 +12796,6 @@ nv.models.scatter = function() {
                         }
                     });
 
-                    // nuke all voronoi paths on reload and recreate them
-                    wrap.select('.nv-point-paths').selectAll('path').remove();
                     var pointPaths = wrap.select('.nv-point-paths').selectAll('path').data(voronoi);
                     var vPointPaths = pointPaths
                         .enter().append("svg:path")
